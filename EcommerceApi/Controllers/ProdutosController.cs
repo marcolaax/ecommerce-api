@@ -30,6 +30,13 @@ public class ProdutosController : ControllerBase
         return Ok(item);
     }
 
+    [HttpGet("categoria/{categoria}")]
+    public async Task<IActionResult> BuscarPorCategoria(string categoria)
+    {
+        var lista = await _col.Find(p => p.Categoria == categoria).ToListAsync();
+        return Ok(lista);
+    }
+
     [HttpPost]
     public async Task<IActionResult> Criar([FromBody] Produto produto)
     {
