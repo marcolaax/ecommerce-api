@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 using SkateStore.Models;
@@ -38,6 +39,7 @@ public class ProdutosController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize]
     public async Task<IActionResult> Criar([FromBody] Produto produto)
     {
         await _col.InsertOneAsync(produto);
@@ -45,6 +47,7 @@ public class ProdutosController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize]
     public async Task<IActionResult> Atualizar(string id, [FromBody] Produto produto)
     {
         var result = await _col.ReplaceOneAsync(p => p.Id == id, produto);
@@ -53,6 +56,7 @@ public class ProdutosController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize]
     public async Task<IActionResult> Deletar(string id)
     {
         var result = await _col.DeleteOneAsync(p => p.Id == id);
