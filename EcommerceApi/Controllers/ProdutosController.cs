@@ -23,12 +23,11 @@ public class ProdutosController : ControllerBase
         return Ok(lista);
     }
 
-    [HttpGet("{id}")]
-    public async Task<IActionResult> Buscar(string id)
+    [HttpGet("disponiveis")]
+    public async Task<IActionResult> ListarDisponiveis()
     {
-        var item = await _col.Find(p => p.Id == id).FirstOrDefaultAsync();
-        if (item is null) return NotFound(new { message = $"Produto {id} não encontrado." });
-        return Ok(item);
+        var lista = await _col.Find(p => p.Disponivel == true).ToListAsync();
+        return Ok(lista);
     }
 
     [HttpGet("categoria/{categoria}")]
@@ -36,6 +35,14 @@ public class ProdutosController : ControllerBase
     {
         var lista = await _col.Find(p => p.Categoria == categoria).ToListAsync();
         return Ok(lista);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> Buscar(string id)
+    {
+        var item = await _col.Find(p => p.Id == id).FirstOrDefaultAsync();
+        if (item is null) return NotFound(new { message = $"Produto {id} não encontrado." });
+        return Ok(item);
     }
 
     [HttpPost]
@@ -55,6 +62,17 @@ public class ProdutosController : ControllerBase
         return NoContent();
     }
 
+    [HttpPatch("{id}/disponibilidade")]
+    [Authorize]
+    public async Task<IActionResult> AtualizarDisponibilidade(string id, [FromBody] DisponibilidadeRequest req)
+    {
+        var produto = await _col.Find(p => p.Id == id).FirstOrDefaultAsync();
+        if (produto is null) return NotFound(new { message = $"Produto {id} não encontrado." });
+        produto.Disponivel = req.Disponivel;
+        await _col.ReplaceOneAsync(p => p.Id == id, produto);
+        return NoContent();
+    }
+
     [HttpDelete("{id}")]
     [Authorize]
     public async Task<IActionResult> Deletar(string id)
@@ -64,3 +82,5 @@ public class ProdutosController : ControllerBase
         return NoContent();
     }
 }
+
+public record DisponibilidadeRequest(bool Disponivel);
