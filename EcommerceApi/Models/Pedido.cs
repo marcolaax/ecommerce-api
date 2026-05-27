@@ -9,6 +9,8 @@ public class Pedido
     [BsonRepresentation(BsonType.ObjectId)]
     public string? Id { get; set; }
     public string ProdutoId { get; set; } = string.Empty;
+    public string NomeCliente { get; set;} = string.Empty;
     public int Quantidade { get; set; }
     public string Status { get; set; } = "pendente";
+    public DateTime CriadoEm { get; set;} = DateTime.UtcNow;
 }
