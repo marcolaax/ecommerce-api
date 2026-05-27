@@ -33,6 +33,8 @@ public class PedidosController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Criar([FromBody] Pedido pedido)
     {
+        if (pedido.Quantidade <= 0)
+            return BadRequest(new { message = "Quantidade deve ser maior que zero." });
         await _col.InsertOneAsync(pedido);
         return CreatedAtAction(nameof(Buscar), new { id = pedido.Id }, pedido);
     }
