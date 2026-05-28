@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 using SkateStore.Models;
@@ -16,6 +17,7 @@ public class PedidosController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize]
     public async Task<IActionResult> Listar()
     {
         var lista = await _col.Find(_ => true).ToListAsync();
@@ -23,6 +25,7 @@ public class PedidosController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [Authorize]
     public async Task<IActionResult> Buscar(string id)
     {
         var item = await _col.Find(p => p.Id == id).FirstOrDefaultAsync();
@@ -31,6 +34,7 @@ public class PedidosController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize]
     public async Task<IActionResult> Criar([FromBody] Pedido pedido)
     {
         if (pedido.Quantidade <= 0)
@@ -40,6 +44,7 @@ public class PedidosController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize]
     public async Task<IActionResult> Atualizar(string id, [FromBody] Pedido pedido)
     {
         var result = await _col.ReplaceOneAsync(p => p.Id == id, pedido);
@@ -48,6 +53,7 @@ public class PedidosController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize]
     public async Task<IActionResult> Deletar(string id)
     {
         var result = await _col.DeleteOneAsync(p => p.Id == id);
@@ -56,6 +62,7 @@ public class PedidosController : ControllerBase
     }
 
     [HttpPatch("{id}/status")]
+    [Authorize]
     public async Task<IActionResult> AtualizarStatus(string id, [FromBody] StatusRequest req)
     {
         var pedido = await _col.Find(p => p.Id == id).FirstOrDefaultAsync();
