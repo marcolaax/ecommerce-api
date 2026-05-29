@@ -21,7 +21,7 @@ Depois acessa o Swagger em `http://localhost:5124/swagger`
 | Variável | Exemplo |
 |---|---|
 | `MONGO_CONNECTION` | `mongodb://localhost:27017` |
-| `Jwt__Secret` | `minha-chave-secreta` |
+| `Jwt__Secret` | `senhaminha` |
 
 Se não definir, usa os valores do `appsettings.json`.
 
