@@ -5,7 +5,10 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var mongo = new MongoClient(builder.Configuration["Mongo:ConnectionString"]);
+var connectionString = Environment.GetEnvironmentVariable("MONGO_CONNECTION")
+    ?? builder.Configuration["Mongo:ConnectionString"];
+
+var mongo = new MongoClient(connectionString);
 builder.Services.AddSingleton<IMongoDatabase>(mongo.GetDatabase(builder.Configuration["Mongo:Database"]));
 
 builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
