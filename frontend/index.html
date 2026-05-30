@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SKATE STORE</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap');
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d0d0d; --bg2: #161616; --bg3: #1e1e1e;
+      --border: #2a2a2a; --yellow: #f5c518; --yellow2: #e0b315;
+      --text: #f0f0f0; --text2: #999; --green: #22c55e; --red: #ef4444;
+    }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    header { background: rgba(13,13,13,0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); padding: 0 48px; height: 68px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 200; }
+    .logo { font-size: 1.3rem; font-weight: 900; letter-spacing: 3px; text-transform: uppercase; color: #fff; }
+    .logo em { color: var(--yellow); font-style: normal; }
+    .header-nav { display: flex; gap: 4px; }
+    .header-nav button { background: none; border: none; color: var(--text2); padding: 8px 14px; font-size: 0.82rem; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; border-radius: 6px; transition: all 0.15s; }
+    .header-nav button:hover { color: #fff; background: var(--bg3); }
+    .header-actions { display: flex; gap: 8px; align-items: center; }
+    .btn-login { background: none; border: 1px solid var(--border); color: var(--text2); padding: 7px 16px; font-size: 0.8rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; border-radius: 6px; transition: all 0.15s; }
+    .btn-login:hover { border-color: #fff; color: #fff; }
+    .btn-login.logado { border-color: var(--green); color: var(--green); }
+
+    #toast { position: fixed; top: 80px; right: 24px; padding: 12px 18px; border-radius: 8px; font-size: 0.85rem; font-weight: 500; opacity: 0; transform: translateY(-8px); transition: all 0.25s; z-index: 999; max-width: 300px; }
+    #toast.show { opacity: 1; transform: translateY(0); }
+    #toast.ok { background: #052e16; color: var(--green); border: 1px solid #166534; }
+    #toast.erro { background: #2d0d0d; color: var(--red); border: 1px solid #991b1b; }
+
+    #app { min-height: calc(100vh - 68px); }
+
+    /* PAINEL */
+    .painel { padding: 48px; }
+    .painel-boas { margin-bottom: 36px; }
+    .painel-boas h2 { font-size: 1.8rem; font-weight: 900; }
+    .painel-boas h2 em { color: var(--yellow); font-style: normal; }
+    .painel-boas p { color: var(--text2); margin-top: 6px; font-size: 0.9rem; }
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+    .stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+    .stat-card.yellow { border-color: rgba(245,197,24,0.3); background: rgba(245,197,24,0.05); }
+    .stat-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--text2); margin-bottom: 10px; }
+    .stat-num { font-size: 2.5rem; font-weight: 900; color: #fff; line-height: 1; }
+    .stat-num.yellow { color: var(--yellow); }
+    .stat-num.green { color: var(--green); }
+    .stat-num.red { color: var(--red); }
+    .stat-ico { font-size: 1.5rem; margin-bottom: 8px; }
+    .painel-acoes { margin-top: 32px; }
+    .painel-acoes h3 { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--text2); margin-bottom: 16px; }
+    .acoes-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .acao-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 20px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 14px; }
+    .acao-card:hover { border-color: var(--yellow); transform: translateY(-2px); }
+    .acao-ico { font-size: 2rem; }
+    .acao-txt strong { display: block; font-size: 0.9rem; font-weight: 700; margin-bottom: 2px; }
+    .acao-txt span { font-size: 0.78rem; color: var(--text2); }
+
+    /* LOJA */
+    .loja { padding: 48px; }
+    .loja-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+    .loja-titulo { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 3px; color: var(--text2); }
+    .loja-titulo strong { color: var(--text); font-size: 1rem; display: block; margin-top: 2px; }
+    .btn-add { background: var(--yellow); color: #000; border: none; padding: 10px 20px; font-size: 0.8rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; border-radius: 6px; transition: all 0.15s; }
+    .btn-add:hover { background: var(--yellow2); }
+    .filtros { display: flex; gap: 8px; margin-bottom: 32px; flex-wrap: wrap; }
+    .filtro { background: var(--bg2); border: 1px solid var(--border); color: var(--text2); padding: 7px 18px; border-radius: 30px; font-size: 0.78rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: all 0.15s; }
+    .filtro:hover { border-color: var(--yellow); color: var(--yellow); }
+    .filtro.on { background: var(--yellow); color: #000; border-color: var(--yellow); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+    .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: all 0.2s; position: relative; }
+    .card:hover { border-color: #444; transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
+    .card-img { background: var(--bg3); height: 200px; display: flex; align-items: center; justify-content: center; font-size: 5rem; border-bottom: 1px solid var(--border); cursor: pointer; overflow: hidden; }
+    .card-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
+    .card:hover .card-img img { transform: scale(1.05); }
+    .card-badge-status { position: absolute; top: 12px; left: 12px; z-index: 1; }
+    .badge { display: inline-block; padding: 3px 9px; border-radius: 20px; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    .badge-on { background: #052e16; color: var(--green); }
+    .badge-off { background: #2d0d0d; color: var(--red); }
+    .badge-pendente { background: #2d2000; color: var(--yellow); }
+    .badge-concluido { background: #052e16; color: var(--green); }
+    .badge-cancelado { background: #2d0d0d; color: var(--red); }
+    .card-body { padding: 16px; }
+    .card-cat { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--yellow); margin-bottom: 4px; }
+    .card-nome { font-size: 0.95rem; font-weight: 700; color: #fff; margin-bottom: 2px; cursor: pointer; }
+    .card-nome:hover { color: var(--yellow); }
+    .card-marca { font-size: 0.78rem; color: var(--text2); margin-bottom: 10px; }
+    .card-preco { font-size: 1.2rem; font-weight: 800; color: #fff; }
+    .card-estoque { font-size: 0.75rem; color: var(--text2); margin-top: 2px; }
+    .card-actions { display: flex; gap: 6px; padding: 0 16px 16px; }
+    .btn-sm { flex: 1; padding: 7px; border: none; border-radius: 6px; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; cursor: pointer; transition: all 0.15s; }
+    .btn-ver { background: var(--bg3); color: var(--text2); border: 1px solid var(--border); }
+    .btn-ver:hover { color: #fff; border-color: #555; }
+    .btn-edit { background: #1a1a00; color: var(--yellow); border: 1px solid #333; }
+    .btn-edit:hover { background: #2a2a00; }
+    .btn-del { background: #1a0000; color: var(--red); border: 1px solid #333; }
+    .btn-del:hover { background: #2a0000; }
+    .vazio { grid-column: 1/-1; text-align: center; padding: 80px 20px; color: #333; }
+    .vazio .ico { font-size: 4rem; margin-bottom: 16px; }
+    .vazio p { font-size: 0.9rem; }
+
+    /* DETALHE */
+    .detalhe-wrap { padding: 48px; }
+    .back-btn { background: none; border: 1px solid var(--border); color: var(--text2); padding: 8px 16px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; margin-bottom: 32px; transition: all 0.15s; }
+    .back-btn:hover { color: #fff; border-color: #555; }
+    .detalhe-grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: 0; background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+    .detalhe-img { background: var(--bg3); display: flex; align-items: center; justify-content: center; font-size: 9rem; min-height: 360px; border-right: 1px solid var(--border); overflow: hidden; }
+    .detalhe-img img { width: 100%; height: 100%; object-fit: cover; }
+    .detalhe-info { padding: 40px; }
+    .detalhe-cat { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 3px; color: var(--yellow); margin-bottom: 8px; }
+    .detalhe-nome { font-size: 2rem; font-weight: 900; margin-bottom: 4px; }
+    .detalhe-marca { color: var(--text2); margin-bottom: 16px; font-size: 0.9rem; }
+    .detalhe-preco { font-size: 2.5rem; font-weight: 900; color: var(--yellow); margin: 20px 0; }
+    .detalhe-desc { color: var(--text2); font-size: 0.9rem; line-height: 1.7; margin-bottom: 20px; }
+    .detalhe-meta { display: flex; gap: 12px; margin-bottom: 28px; }
+    .meta-item { background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; }
+    .meta-label { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text2); margin-bottom: 4px; }
+    .meta-val { font-size: 0.95rem; font-weight: 700; }
+    .detalhe-btns { display: flex; gap: 10px; }
+    .btn-primary { background: var(--yellow); color: #000; border: none; padding: 12px 24px; font-size: 0.85rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; border-radius: 6px; transition: all 0.15s; }
+    .btn-primary:hover { background: var(--yellow2); }
+    .btn-danger { background: #2d0d0d; color: var(--red); border: 1px solid #7f1d1d; padding: 12px 24px; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; border-radius: 6px; transition: all 0.15s; }
+    .btn-danger:hover { background: #3d1010; }
+    .btn-outline { background: none; color: var(--text2); border: 1px solid var(--border); padding: 12px 24px; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; border-radius: 6px; transition: all 0.15s; }
+    .btn-outline:hover { color: #fff; border-color: #555; }
+
+    /* FORM */
+    .form-wrap { padding: 48px; }
+    .form-box { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; padding: 40px; max-width: 600px; }
+    .form-box h2 { font-size: 1rem; font-weight: 800; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 32px; }
+    .form-box h2 span { color: var(--yellow); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text2); margin-bottom: 7px; }
+    .form-group input, .form-group select { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 11px 14px; color: #fff; font-size: 0.9rem; font-family: inherit; transition: border-color 0.15s; }
+    .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--yellow); }
+    .form-group select option { background: var(--bg2); }
+    .form-btns { display: flex; gap: 10px; margin-top: 24px; }
+
+    /* PEDIDOS */
+    .pedidos-wrap { padding: 48px; }
+    .table-box { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; }
+    thead { background: var(--bg3); }
+    th { padding: 13px 16px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--text2); text-align: left; }
+    td { padding: 16px; font-size: 0.88rem; border-bottom: 1px solid var(--bg3); }
+    tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: rgba(255,255,255,0.02); }
+    .td-id { font-size: 0.72rem; color: var(--text2); font-family: monospace; }
+    .td-actions { display: flex; gap: 6px; }
+
+    /* LOGIN */
+    .login-wrap { padding: 80px 48px; display: flex; justify-content: center; }
+    .login-box { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; padding: 48px 40px; width: 100%; max-width: 420px; }
+    .login-logo { font-size: 1.5rem; font-weight: 900; letter-spacing: 3px; text-transform: uppercase; text-align: center; margin-bottom: 6px; }
+    .login-logo em { color: var(--yellow); font-style: normal; }
+    .login-sub { text-align: center; color: var(--text2); font-size: 0.82rem; margin-bottom: 32px; }
+    .login-tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 28px; }
+    .tab { flex: 1; background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -1px; padding: 10px; color: var(--text2); font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: all 0.15s; }
+    .tab.on { color: var(--yellow); border-bottom-color: var(--yellow); }
+    .login-btn { width: 100%; background: var(--yellow); color: #000; border: none; padding: 13px; font-size: 0.9rem; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; cursor: pointer; border-radius: 8px; margin-top: 8px; transition: all 0.15s; }
+    .login-btn:hover { background: var(--yellow2); }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🛹 <em>Skate</em> Store</div>
+  <nav class="header-nav">
+    <button onclick="mostrarLoja()">Loja</button>
+    <button onclick="mostrarPainel()">Painel</button>
+    <button onclick="mostrarPedidos()">Pedidos</button>
+  </nav>
+  <div class="header-actions">
+    <button class="btn-login" id="btnLogin" onclick="mostrarLogin()">Entrar</button>
+  </div>
+</header>
+
+<div id="toast"></div>
+<div id="app"></div>
+
+<script>
+  const API = 'http://localhost:5124/api';
+  let token = '';
+  let userEmail = '';
+
+  // imagem por categoria — usa arquivo local, senão emoji
+  const IMGS = {
+    shape: 'img/shape.webp',
+    roupa: 'img/roupa.webp',
+    tenis: 'img/tenis.webp',
+    protetor: 'img/capacete.webp',
+    acessorio: 'img/mosquetao.webp'
+  };
+  const EM = { shape:'🛹', roupa:'👕', tenis:'👟', protetor:'🪖', acessorio:'🔗' };
+
+  function imgOuEmoji(cat, grande) {
+    const src = IMGS[cat];
+    if (src) return `<img src="${src}" alt="${cat}" onerror="this.parentElement.innerHTML='${EM[cat]||'📦'}'">`;
+    return EM[cat] || '📦';
+  }
+
+  function toast(msg, tipo) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = `show ${tipo}`;
+    setTimeout(() => el.className = '', 3000);
+  }
+
+  function H() {
+    const h = { 'Content-Type': 'application/json' };
+    if (token) h['Authorization'] = 'Bearer ' + token;
+    return h;
+  }
+
+  function setApp(html) { document.getElementById('app').innerHTML = html; }
+
+  function atualizarBtnLogin() {
+    const btn = document.getElementById('btnLogin');
+    if (token) { btn.textContent = '● ' + userEmail.split('@')[0]; btn.className = 'btn-login logado'; }
+    else { btn.textContent = 'Entrar'; btn.className = 'btn-login'; }
+  }
+
+  // ══════════════════════════════════════════
+  //  PAINEL
+  // ══════════════════════════════════════════
+
+  async function mostrarPainel() {
+    if (!token) { toast('Faça login para acessar o painel.', 'erro'); mostrarLogin(); return; }
+    const [resProd, resPed] = await Promise.all([
+      fetch(`${API}/produtos`, { headers: H() }),
+      fetch(`${API}/pedidos`, { headers: H() })
+    ]);
+    const produtos = await resProd.json();
+    const pedidos = await resPed.json();
+    const pendentes = pedidos.filter(p => p.status === 'pendente').length;
+    const concluidos = pedidos.filter(p => p.status === 'concluido').length;
+    const cancelados = pedidos.filter(p => p.status === 'cancelado').length;
+    const disponiveis = produtos.filter(p => p.disponivel).length;
+
+    setApp(`
+      <div class="painel">
+        <div class="painel-boas">
+          <h2>Olá, <em>${userEmail.split('@')[0]}</em> 👋</h2>
+          <p>Aqui está um resumo da sua loja.</p>
+        </div>
+        <div class="stats">
+          <div class="stat-card yellow">
+            <div class="stat-ico">🛹</div>
+            <div class="stat-label">Total de produtos</div>
+            <div class="stat-num yellow">${produtos.length}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-ico">✅</div>
+            <div class="stat-label">Disponíveis</div>
+            <div class="stat-num green">${disponiveis}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-ico">📋</div>
+            <div class="stat-label">Total de pedidos</div>
+            <div class="stat-num">${pedidos.length}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-ico">⏳</div>
+            <div class="stat-label">Pendentes</div>
+            <div class="stat-num yellow">${pendentes}</div>
+          </div>
+        </div>
+        <div class="stats">
+          <div class="stat-card">
+            <div class="stat-ico">✅</div>
+            <div class="stat-label">Concluídos</div>
+            <div class="stat-num green">${concluidos}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-ico">❌</div>
+            <div class="stat-label">Cancelados</div>
+            <div class="stat-num red">${cancelados}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-ico">📦</div>
+            <div class="stat-label">Indisponíveis</div>
+            <div class="stat-num red">${produtos.length - disponiveis}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-ico">📦</div>
+            <div class="stat-label">Total vendido</div>
+            <div class="stat-num">${pedidos.reduce((a,p) => a + p.quantidade, 0)} un.</div>
+          </div>
+        </div>
+        <div class="painel-acoes">
+          <h3>Ações rápidas</h3>
+          <div class="acoes-grid">
+            <div class="acao-card" onclick="mostrarFormProduto()">
+              <div class="acao-ico">➕</div>
+              <div class="acao-txt"><strong>Novo produto</strong><span>Cadastrar produto na loja</span></div>
+            </div>
+            <div class="acao-card" onclick="mostrarPedidos()">
+              <div class="acao-ico">📋</div>
+              <div class="acao-txt"><strong>Ver pedidos</strong><span>Gerenciar todos os pedidos</span></div>
+            </div>
+            <div class="acao-card" onclick="mostrarLoja()">
+              <div class="acao-ico">🛹</div>
+              <div class="acao-txt"><strong>Ver loja</strong><span>Ver catálogo de produtos</span></div>
+            </div>
+          </div>
+        </div>
+      </div>`);
+  }
+
+  // ══════════════════════════════════════════
+  //  LOJA
+  // ══════════════════════════════════════════
+
+  async function mostrarLoja(filtro) {
+    let url = `${API}/produtos`;
+    if (filtro === 'disponiveis') url += '/disponiveis';
+    else if (filtro && filtro !== 'todos') url += `/categoria/${filtro}`;
+
+    const res = await fetch(url, { headers: H() });
+    const lista = await res.json();
+
+    const cats = ['todos','disponiveis','shape','roupa','tenis','protetor','acessorio'];
+    const labels = { todos:'Todos', disponiveis:'✅ Disponíveis', shape:'🛹 Shape', roupa:'👕 Roupa', tenis:'👟 Tênis', protetor:'🪖 Protetor', acessorio:'🔗 Acessório' };
+    const filtros = cats.map(c => `<button class="filtro ${(!filtro&&c==='todos')||(filtro===c)?'on':''}" onclick="mostrarLoja('${c}')">${labels[c]}</button>`).join('');
+
+    const cards = lista.length > 0 ? lista.map(p => `
+      <div class="card">
+        <div class="card-badge-status"><span class="badge ${p.disponivel?'badge-on':'badge-off'}">${p.disponivel?'Disponível':'Esgotado'}</span></div>
+        <div class="card-img" onclick="verProduto('${p.id}')">${imgOuEmoji(p.categoria)}</div>
+        <div class="card-body">
+          <div class="card-cat">${p.categoria}</div>
+          <div class="card-nome" onclick="verProduto('${p.id}')">${p.nome}</div>
+          <div class="card-marca">${p.marca||''}</div>
+          <div class="card-preco">R$ ${Number(p.preco).toFixed(2)}</div>
+          <div class="card-estoque">${p.estoque} em estoque</div>
+        </div>
+        <div class="card-actions">
+          <button class="btn-sm btn-ver" onclick="verProduto('${p.id}')">Ver</button>
+          <button class="btn-sm btn-edit" onclick="editarProduto('${p.id}')">Editar</button>
+          <button class="btn-sm btn-del" onclick="deletarProduto('${p.id}')">Excluir</button>
+        </div>
+      </div>`).join('')
+    : `<div class="vazio"><div class="ico">📭</div><p>Nenhum produto encontrado.</p></div>`;
+
+    setApp(`
+      <div style="background:linear-gradient(160deg,#111 0%,#0d0d0d 60%,#1a1400 100%);border-bottom:1px solid var(--border);padding:64px 48px;display:flex;align-items:center;justify-content:space-between;gap:40px">
+        <div>
+          <p style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:3px;color:var(--yellow);margin-bottom:12px">Nova coleção 2026</p>
+          <h1 style="font-size:3rem;font-weight:900;line-height:1;text-transform:uppercase;letter-spacing:-1px">Tudo pra<br><span style="color:var(--yellow)">andar de skate</span></h1>
+          <p style="color:var(--text2);margin:16px 0 28px;max-width:400px;line-height:1.6">Shapes, roupas, tênis e acessórios das melhores marcas do streetwear nacional.</p>
+          <button class="btn-add" onclick="mostrarFormProduto()">+ Adicionar produto</button>
+        </div>
+        <div style="font-size:9rem;filter:drop-shadow(0 0 60px rgba(245,197,24,0.2))">🛹</div>
+      </div>
+      <div class="loja">
+        <div class="loja-header">
+          <div class="loja-titulo">Catálogo <strong>Produtos (${lista.length})</strong></div>
+          <button class="btn-add" onclick="mostrarFormProduto()">+ Novo produto</button>
+        </div>
+        <div class="filtros">${filtros}</div>
+        <div class="grid">${cards}</div>
+      </div>`);
+  }
+
+  async function verProduto(id) {
+    const res = await fetch(`${API}/produtos/${id}`, { headers: H() });
+    const p = await res.json();
+    setApp(`
+      <div class="detalhe-wrap">
+        <button class="back-btn" onclick="mostrarLoja()">← Voltar à loja</button>
+        <div class="detalhe-grid">
+          <div class="detalhe-img">${imgOuEmoji(p.categoria)}</div>
+          <div class="detalhe-info">
+            <div class="detalhe-cat">${p.categoria}</div>
+            <div class="detalhe-nome">${p.nome}</div>
+            <div class="detalhe-marca">${p.marca||''}</div>
+            <span class="badge ${p.disponivel?'badge-on':'badge-off'}">${p.disponivel?'Disponível':'Indisponível'}</span>
+            <div class="detalhe-preco">R$ ${Number(p.preco).toFixed(2)}</div>
+            ${p.descricao?`<div class="detalhe-desc">${p.descricao}</div>`:''}
+            <div class="detalhe-meta">
+              <div class="meta-item"><div class="meta-label">Estoque</div><div class="meta-val">${p.estoque} un.</div></div>
+              <div class="meta-item"><div class="meta-label">Categoria</div><div class="meta-val">${p.categoria}</div></div>
+            </div>
+            <div class="detalhe-btns">
+              <button class="btn-primary" onclick="editarProduto('${p.id}')">Editar</button>
+              <button class="btn-danger" onclick="deletarProduto('${p.id}')">Excluir</button>
+              <button class="btn-outline" onclick="mostrarLoja()">Voltar</button>
+            </div>
+          </div>
+        </div>
+      </div>`);
+  }
+
+  function mostrarFormProduto(prod) {
+    const edit = !!prod;
+    setApp(`
+      <div class="form-wrap">
+        <button class="back-btn" onclick="mostrarLoja()">← Voltar</button>
+        <div class="form-box">
+          <h2>${edit?'Editar':'Novo'} <span>Produto</span></h2>
+          <div class="form-row">
+            <div class="form-group"><label>Nome</label><input id="fNome" value="${prod?.nome||''}" placeholder="Ex: Shape Baker 8.0"></div>
+            <div class="form-group"><label>Marca</label><input id="fMarca" value="${prod?.marca||''}" placeholder="Baker, Vans..."></div>
+          </div>
+          <div class="form-group"><label>Descrição</label><input id="fDesc" value="${prod?.descricao||''}" placeholder="Descreva o produto..."></div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Categoria</label>
+              <select id="fCat">
+                ${['shape','roupa','tenis','protetor','acessorio'].map(c=>`<option value="${c}" ${prod?.categoria===c?'selected':''}>${c}</option>`).join('')}
+              </select>
+            </div>
+            <div class="form-group"><label>Preço (R$)</label><input id="fPreco" type="number" value="${prod?.preco||''}" placeholder="0.00"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Estoque</label><input id="fEstoque" type="number" value="${prod?.estoque||''}" placeholder="0"></div>
+            <div class="form-group">
+              <label>Disponível</label>
+              <select id="fDisp">
+                <option value="true" ${prod?.disponivel!==false?'selected':''}>Sim</option>
+                <option value="false" ${prod?.disponivel===false?'selected':''}>Não</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-btns">
+            <button class="btn-primary" onclick="${edit?`salvarEdicao('${prod.id}')`:'criarProduto()'}">${edit?'Salvar alterações':'Cadastrar produto'}</button>
+            <button class="btn-outline" onclick="mostrarLoja()">Cancelar</button>
+          </div>
+        </div>
+      </div>`);
+  }
+
+  async function editarProduto(id) {
+    const res = await fetch(`${API}/produtos/${id}`, { headers: H() });
+    const p = await res.json();
+    mostrarFormProduto(p);
+  }
+
+  async function criarProduto() {
+    const body = { nome: document.getElementById('fNome').value, marca: document.getElementById('fMarca').value, descricao: document.getElementById('fDesc').value, categoria: document.getElementById('fCat').value, preco: parseFloat(document.getElementById('fPreco').value), estoque: parseInt(document.getElementById('fEstoque').value), disponivel: document.getElementById('fDisp').value === 'true' };
+    const res = await fetch(`${API}/produtos`, { method:'POST', headers:H(), body:JSON.stringify(body) });
+    if (res.ok) { toast('Produto criado!','ok'); mostrarLoja(); }
+    else toast('Faça login para adicionar produtos.','erro');
+  }
+
+  async function salvarEdicao(id) {
+    const body = { id, nome: document.getElementById('fNome').value, marca: document.getElementById('fMarca').value, descricao: document.getElementById('fDesc').value, categoria: document.getElementById('fCat').value, preco: parseFloat(document.getElementById('fPreco').value), estoque: parseInt(document.getElementById('fEstoque').value), disponivel: document.getElementById('fDisp').value === 'true' };
+    const res = await fetch(`${API}/produtos/${id}`, { method:'PUT', headers:H(), body:JSON.stringify(body) });
+    if (res.ok) { toast('Produto atualizado!','ok'); mostrarLoja(); }
+    else toast('Faça login para editar.','erro');
+  }
+
+  async function deletarProduto(id) {
+    if (!confirm('Excluir este produto?')) return;
+    const res = await fetch(`${API}/produtos/${id}`, { method:'DELETE', headers:H() });
+    if (res.ok) { toast('Produto excluído!','ok'); mostrarLoja(); }
+    else toast('Faça login para excluir.','erro');
+  }
+
+  // ══════════════════════════════════════════
+  //  PEDIDOS
+  // ══════════════════════════════════════════
+
+  async function mostrarPedidos() {
+    const res = await fetch(`${API}/pedidos`, { headers: H() });
+    if (res.status === 401) { toast('Faça login para ver os pedidos.','erro'); mostrarLogin(); return; }
+    const lista = await res.json();
+
+    const rows = lista.length > 0 ? lista.map(p => `
+      <tr>
+        <td><strong>${p.nomeCliente||'—'}</strong></td>
+        <td class="td-id">${p.produtoId}</td>
+        <td>${p.quantidade}</td>
+        <td><span class="badge badge-${p.status}">${p.status}</span></td>
+        <td><div class="td-actions">
+          <button class="btn-sm btn-edit" onclick="mostrarEditStatus('${p.id}','${p.status}')">Status</button>
+          <button class="btn-sm btn-del" onclick="deletarPedido('${p.id}')">Excluir</button>
+        </div></td>
+      </tr>`).join('')
+    : `<tr><td colspan="5"><div class="vazio"><div class="ico">📋</div><p>Nenhum pedido.</p></div></td></tr>`;
+
+    setApp(`
+      <div class="pedidos-wrap">
+        <div class="loja-header" style="margin-bottom:24px">
+          <div class="loja-titulo">Gestão <strong>Pedidos (${lista.length})</strong></div>
+          <button class="btn-add" onclick="mostrarFormPedido()">+ Novo pedido</button>
+        </div>
+        <div class="table-box">
+          <table>
+            <thead><tr><th>Cliente</th><th>Produto ID</th><th>Qtd</th><th>Status</th><th>Ações</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </div>`);
+  }
+
+  function mostrarFormPedido() {
+    setApp(`
+      <div class="form-wrap">
+        <button class="back-btn" onclick="mostrarPedidos()">← Voltar</button>
+        <div class="form-box">
+          <h2>Novo <span>Pedido</span></h2>
+          <div class="form-group"><label>Nome do Cliente</label><input id="pCliente" placeholder="Nome completo"></div>
+          <div class="form-group"><label>ID do Produto</label><input id="pProdId" placeholder="Cole o ID do produto"></div>
+          <div class="form-group"><label>Quantidade</label><input id="pQtd" type="number" placeholder="1" min="1"></div>
+          <div class="form-btns">
+            <button class="btn-primary" onclick="criarPedido()">Confirmar pedido</button>
+            <button class="btn-outline" onclick="mostrarPedidos()">Cancelar</button>
+          </div>
+        </div>
+      </div>`);
+  }
+
+  async function criarPedido() {
+    const body = { nomeCliente: document.getElementById('pCliente').value, produtoId: document.getElementById('pProdId').value, quantidade: parseInt(document.getElementById('pQtd').value), status: 'pendente' };
+    const res = await fetch(`${API}/pedidos`, { method:'POST', headers:H(), body:JSON.stringify(body) });
+    if (res.ok) { toast('Pedido criado!','ok'); mostrarPedidos(); }
+    else toast('Erro ao criar pedido.','erro');
+  }
+
+  function mostrarEditStatus(id, atual) {
+    setApp(`
+      <div class="form-wrap">
+        <button class="back-btn" onclick="mostrarPedidos()">← Voltar</button>
+        <div class="form-box">
+          <h2>Atualizar <span>Status</span></h2>
+          <div class="form-group">
+            <label>Novo status</label>
+            <select id="novoStatus">
+              <option value="pendente" ${atual==='pendente'?'selected':''}>⏳ Pendente</option>
+              <option value="concluido" ${atual==='concluido'?'selected':''}>✅ Concluído</option>
+              <option value="cancelado" ${atual==='cancelado'?'selected':''}>❌ Cancelado</option>
+            </select>
+          </div>
+          <div class="form-btns">
+            <button class="btn-primary" onclick="atualizarStatus('${id}')">Salvar</button>
+            <button class="btn-outline" onclick="mostrarPedidos()">Cancelar</button>
+          </div>
+        </div>
+      </div>`);
+  }
+
+  async function atualizarStatus(id) {
+    const res = await fetch(`${API}/pedidos/${id}/status`, { method:'PATCH', headers:H(), body:JSON.stringify({ status: document.getElementById('novoStatus').value }) });
+    if (res.ok) { toast('Status atualizado!','ok'); mostrarPedidos(); }
+    else toast('Erro ao atualizar.','erro');
+  }
+
+  async function deletarPedido(id) {
+    if (!confirm('Excluir este pedido?')) return;
+    const res = await fetch(`${API}/pedidos/${id}`, { method:'DELETE', headers:H() });
+    if (res.ok) { toast('Pedido excluído!','ok'); mostrarPedidos(); }
+    else toast('Erro ao excluir.','erro');
+  }
+
+  // ══════════════════════════════════════════
+  //  AUTH
+  // ══════════════════════════════════════════
+
+  function mostrarLogin(aba) {
+    const isLogin = !aba || aba === 'login';
+    setApp(`
+      <div class="login-wrap">
+        <div class="login-box">
+          <div class="login-logo">🛹 <em>Skate</em> Store</div>
+          <div class="login-sub">Área administrativa da loja</div>
+          <div class="login-tabs">
+            <button class="tab ${isLogin?'on':''}" onclick="mostrarLogin('login')">Entrar</button>
+            <button class="tab ${!isLogin?'on':''}" onclick="mostrarLogin('registro')">Criar conta</button>
+          </div>
+          <div class="form-group"><label>Email</label><input id="lEmail" type="email" placeholder="admin@skate.com"></div>
+          <div class="form-group"><label>Senha</label><input id="lSenha" type="password" placeholder="••••••••"></div>
+          <button class="login-btn" onclick="${isLogin?'login()':'registro()'}">${isLogin?'Entrar na conta':'Criar conta'}</button>
+        </div>
+      </div>`);
+  }
+
+  async function login() {
+    const body = { email: document.getElementById('lEmail').value, senha: document.getElementById('lSenha').value };
+    const res = await fetch(`${API}/auth/login`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    if (res.ok) {
+      const data = await res.json();
+      token = data.token;
+      userEmail = body.email;
+      atualizarBtnLogin();
+      toast('Login feito!','ok');
+      mostrarPainel();
+    } else toast('Email ou senha inválidos.','erro');
+  }
+
+  async function registro() {
+    const body = { email: document.getElementById('lEmail').value, senha: document.getElementById('lSenha').value };
+    const res = await fetch(`${API}/auth/registro`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    if (res.ok) { toast('Conta criada! Faça login.','ok'); mostrarLogin('login'); }
+    else toast('Erro ao criar conta.','erro');
+  }
+
+  mostrarLoja();
+</script>
+</body>
+</html>
